@@ -103,18 +103,6 @@ public class PowerSlayer extends AbstractScript implements ChatListener, MouseLi
 		}
 	}
 
-	@Override
-	public void onPublicMessage(Message message) {
-	}
-
-	@Override
-	public void onPrivateMessage(Message message) {
-	}
-
-	@Override
-	public void onTradeMessage(Message message) {
-	}
-
 	//Start Paint
 
 	public class Paint {

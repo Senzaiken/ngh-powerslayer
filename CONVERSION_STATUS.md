@@ -71,8 +71,29 @@ Bank distance: `Bank.getClosestBankLocation()` or iterate `BankLocation.values()
 - `data/SlayerItems.java` (uses `EquipmentSlot.HAT`/`SHIELD`/etc., `Skill` enum,
   `PaidQuest.*` via the `Quest` interface; requirements stored as `Object[]`
   alternating `(Skill, Integer)` pairs; SUMMONING dropped)
+- `data/Monsters.java`
+- `wrappers/*.java` (MonsterInfo, MonsterLocation, LocationProfile,
+  Requirements, Task, Starter, Finisher)
+- `methods/CombatStyle.java`, `methods/Banking.java`, `methods/Traveling.java`,
+  `methods/SlayerInventory.java`, `methods/SlayerEquip.java`,
+  `methods/SlayerMasters.java`
+- `states/*.java` (GoToMonsterState, GoToBankState, GoToMasterState,
+  GetTaskState, BankingState, FighterState)
+- `methods/UniversalFighter.java` — simplified `clickNPC` to use
+  `NPC.interact(action)` (DreamBot handles walk + camera); simplified
+  `takeItem` similarly. `Combat.getHealthPercent()` replaces the manual
+  widget-based HP read; `Combat.isPoisoned()` replaces the varp check.
+  Filters use DreamBot `match` signature.
+- `PowerSlayer.java` — extends `AbstractScript`, `@ScriptManifest` with
+  `Category.SLAYER`; implements `ChatListener` (`onGameMessage`) and
+  `MouseListener` (`onClick`/etc.). The nested skill enum was renamed
+  `PaintSkill` to avoid collision with DreamBot's `Skill` enum and now
+  holds a `Skill` reference directly. Paint uses `Skills.getPercentageToLevel`
+  and `Skills.getRealLevel`.
 
 ### Remaining (in order)
+
+All of the files below have now been ported. Retained for reference.
 
 1. `data/Monsters.java` — large enum; only Tile import needs to change. Rename
    `import org.rsbot.script.wrappers.Tile` → `org.dreambot.api.methods.map.Tile`,

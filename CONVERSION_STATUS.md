@@ -71,8 +71,29 @@ Bank distance: `Bank.getClosestBankLocation()` or iterate `BankLocation.values()
 - `data/SlayerItems.java` (uses `EquipmentSlot.HAT`/`SHIELD`/etc., `Skill` enum,
   `PaidQuest.*` via the `Quest` interface; requirements stored as `Object[]`
   alternating `(Skill, Integer)` pairs; SUMMONING dropped)
+- `data/Monsters.java`
+- `wrappers/*.java` (MonsterInfo, MonsterLocation, LocationProfile,
+  Requirements, Task, Starter, Finisher)
+- `methods/CombatStyle.java`, `methods/Banking.java`, `methods/Traveling.java`,
+  `methods/SlayerInventory.java`, `methods/SlayerEquip.java`,
+  `methods/SlayerMasters.java`
+- `states/*.java` (GoToMonsterState, GoToBankState, GoToMasterState,
+  GetTaskState, BankingState, FighterState)
+- `methods/UniversalFighter.java` — simplified `clickNPC` to use
+  `NPC.interact(action)` (DreamBot handles walk + camera); simplified
+  `takeItem` similarly. `Combat.getHealthPercent()` replaces the manual
+  widget-based HP read; `Combat.isPoisoned()` replaces the varp check.
+  Filters use DreamBot `match` signature.
+- `PowerSlayer.java` — extends `AbstractScript`, `@ScriptManifest` with
+  `Category.SLAYER`; implements `ChatListener` (`onGameMessage`) and
+  `MouseListener` (`onClick`/etc.). The nested skill enum was renamed
+  `PaintSkill` to avoid collision with DreamBot's `Skill` enum and now
+  holds a `Skill` reference directly. Paint uses `Skills.getPercentageToLevel`
+  and `Skills.getRealLevel`.
 
 ### Remaining (in order)
+
+All of the files below have now been ported. Retained for reference.
 
 1. `data/Monsters.java` — large enum; only Tile import needs to change. Rename
    `import org.rsbot.script.wrappers.Tile` → `org.dreambot.api.methods.map.Tile`,
@@ -146,6 +167,42 @@ Bank distance: `Bank.getClosestBankLocation()` or iterate `BankLocation.values()
   → `Prayers.getPoints()`.
 - For a clean compile, we may want a small `SkillReq` POJO instead of `Object[]`
   in SlayerItems. Left as `Object[]` for now to mirror the original layout.
+
+## Compile-time risks to verify
+
+These spots were best-effort ports that couldn't be fully verified against
+the DreamBot javadocs from this environment (the javadoc host blocks
+WebFetch). Most likely to need a one-line fix:
+
+1. **`PowerSlayer.MouseListener` override names.** I used `onClick`,
+   `onPress`, `onRelease`, `onEnter`, `onExit`, `onMove`, `onDrag`.
+   DreamBot's `HumanMouseListener` (a sibling interface) uses
+   `onMouseClicked`/`onMousePressed`/`onMouseReleased`/... style names —
+   so `MouseListener` may too. If the compiler rejects `@Override` on
+   these, rename to the `onMouse*` form. The original behavior is only
+   implemented for `onClick` (tab-switching); the rest are empty.
+2. **`Skills.getPercentageToLevel(Skill)` in `PowerSlayer.drawSkillBars`.**
+   DreamBot may spell this `getPercentToLevel` instead. Search/replace
+   the two occurrences if the compiler complains.
+3. **`Combat.isSpecialAttackActive()`** (in `FighterState.java`, already
+   in the tree) and **`Combat.getSpecialPercentage()`** (in
+   `UniversalFighter.java`, `SlayerNPCs.useSpecial`). Forum results
+   suggest the current name may be `Combat.isSpecialActivated()`.
+4. **`Prayers.getPoints()`** (in `UniversalFighter.Potion.usePotions`).
+   Worth checking is `Prayers.getPrayerPoints()` or
+   `Prayers.getPoints()`.
+5. **`ChatListener.onGameMessage(Message)`** — the interface has many
+   default methods (`onGameMessage`, `onPlayerMessage`, `onPrivateInMessage`,
+   `onPrivateOutMessage`, `onTradeMessage`, `onClanMessage`,
+   `onAutoMessage`, `onMessage`). We override only `onGameMessage`; the
+   rest inherit the default no-op.
+6. **`Mouse.moveOnScreen()`** in `UniversalFighter.antiban`. If it
+   doesn't exist, replace with `Mouse.move(Calculations.getRandomPoint())`
+   or similar. `Mouse.moveOffScreen()` should be fine.
+7. **Player `getInteractingCharacter()`**. Confirmed to exist on
+   `Character`. If the compiler can't resolve it via the `Player`
+   subclass, try `((Character) Players.getLocal()).getInteractingCharacter()`
+   or the shorter `getInteracting()`.
 
 ## Resume instructions for next session
 
